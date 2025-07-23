@@ -1,0 +1,44 @@
+{
+  "name": "fin-ai",
+  "version": "1.0.50",
+  "type": "module",
+  "scripts": {
+    "dev:setup": "bun install && bun run docker:start && bun run db:push",
+    "dev": "bun run --watch src/http/server.ts",
+    "start": "bun run src/http/server.ts",
+    "build": "bun build src/http/server.ts --target=bun --outdir=dist",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "check-types": "tsc --noEmit",
+    "check-all": "bun run lint && bun run check-types && bun run test",
+    "test": "bun test --passWithNoTests",
+    "test:watch": "bun test --watch --passWithNoTests",
+    "test:coverage": "bun test --coverage --passWithNoTests",
+    "test:ui": "bun test --passWithNoTests --ui",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:check": "drizzle-kit check",
+    "db:studio": "drizzle-kit studio",
+    "docker:start": "docker compose up --build -d",
+    "docker:watch": "docker compose up",
+    "docker:stop": "docker compose stop",
+    "docker:down": "docker compose down",
+    "docker:reset": "docker compose down -v && docker compose up --build -d"
+  },
+  "dependencies": {
+    "@paralleldrive/cuid2": "^2.2.2",
+    "drizzle-orm": "^0.44.3",
+    "drizzle-seed": "^0.3.1",
+    "elysia": "latest",
+    "pg": "^8.16.3",
+    "zod": "^4.0.5"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.1.2",
+    "@tsconfig/bun": "^1.0.8",
+    "bun-types": "latest",
+    "drizzle-kit": "^0.31.4"
+  },
+  "module": "src/http/server.js"
+}
