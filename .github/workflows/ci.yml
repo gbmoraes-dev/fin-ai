@@ -1,0 +1,65 @@
+name: Continuous Integration Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  continuous-integration:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: bitnami/postgresql:16
+        env:
+          POSTGRES_DB: fin-ai-test
+          POSTGRES_USER: docker
+          POSTGRES_PASSWORD: docker
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U docker"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Check Types
+        run: bun run check-types
+
+      - name: Run lint
+        run: bun run lint
+
+      - name: Check database migrations
+        run: bun run db:check
+        env:
+          DATABASE_URL: postgresql://docker:docker@localhost:5432/fin-ai-test
+
+      - name: Build project
+        run: bun run build
+
+      - name: Test Docker build
+        run: docker build . -t fin-ai-test-image --no-cache
